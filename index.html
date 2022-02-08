@@ -17,7 +17,7 @@
     <script>
         var gameWidth = 768, gameHeight = 1280;
         var currentStageNo = 1;
-        var txtEnding, btnReturn;
+        var txtEnding, btnReturn, stageText;
         var currentScene, clickButton;
         var player;
         var bGame = false;
@@ -38,6 +38,13 @@
                         console.log("CLEAR");
                         txtEnding.text = "GAME CLEAR!!";                     
                         btnReturn.visible = true;
+                        currentStageNo = currentStageNo + 1;
+                        if(currentStageNo >= 4){
+                            currentStageNo = 1;
+                        }
+                        console.log("next stage" + currentStageNo);
+                        //DB Store
+                        localforage.setItem("sdsjdas_physicsLineGameStageNo", currentStageNo);
                     } else {
                         //GAME OVER
                         console.log("OVER");                     
@@ -54,6 +61,12 @@
 
         
         function initUIParams() {
+            stageText = currentScene.add
+                .text(300, 10, "STAGE " + currentStageNo)
+                .setScrollFactor(0)
+                .setFontSize(50)
+                .setColor("#FFFF");
+
             txtEnding = currentScene.add
                 .text(200, 100, "")
                 .setScrollFactor(0)
@@ -84,12 +97,19 @@
                 .setScrollFactor(0);
 
             gameSatate = 0;
-            traps = [];
             lines = [];
             switch (currentStageNo) {
                 case 1:
-                    player = new playerContainer(currentScene, 350, 900);
                     var map = currentScene.make.tilemap({ key: 'map1' });
+                    player = new playerContainer(currentScene, 350, 900);
+                    break;
+                    case 2:
+                    var map = currentScene.make.tilemap({ key: 'map2' });
+                    player = new playerContainer(currentScene, 350, 900);
+                    break;
+                    case 3:
+                    var map = currentScene.make.tilemap({ key: 'map3' });
+                    player = new playerContainer(currentScene, 350, 100);
                     break;
             }
             var tileset = map.addTilesetImage("tilemap", "tiles");
@@ -266,8 +286,17 @@
                 clickButton.on("pointerdown", () => {
                     this.scene.start("gameScene");
                 }, this);
+                localforage.getItem("sdsjdas_physicsLineGameStageNo", function (err, value) {
+                    if (value != null) {
+                        currentStageNo = value;
+                    } else {
+                        currentStageNo = 1;
+                    }
+                });
+
             }
         }
+        
 
         class gameScene extends Phaser.Scene {
             constructor() {
@@ -276,12 +305,15 @@
             preload() {
                 this.load.image("bg001", "./bg.png");
                 this.load.image("tiles", "mapchip64x64.png");
-                this.load.tilemapTiledJSON("map1", "level1.json");
 
                 this.load.image("player", "player_100x150.png");
                 this.load.image("trap", "trap64x64.png");
+                this.load.tilemapTiledJSON("map1", "level1.json");
+                this.load.tilemapTiledJSON("map2", "level2.json");
+                this.load.tilemapTiledJSON("map3", "level3.json");
             }
             create() {
+
                 bGame = false;
                 currentScene = this;
                 initStageLoad();
