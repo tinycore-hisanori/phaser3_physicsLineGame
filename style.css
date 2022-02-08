@@ -1,12 +1,28 @@
-body{
+body {
     background-color: black;
     min-height: 100vh;
     min-width: 100vw;
     height: 100%;
     width: 100vw;
     margin: auto;
-    }
-    #container{
+}
+
+#container {
     position: absolute;
     overflow: hidden;
-    }
+}
+
+@font-face {
+    font-family: CustomFont;
+    src: url('GN-Kin-iro_SansSerif.ttf');
+}
+
+@font-face {
+    font-family: CustomFontEng;
+    src: url('SpicyRice-Regular.otf');
+}
+
+@font-face {
+    font-family: CustomFontHorror;
+    src: url('CrazyKiller-1jZB.ttf');
+}

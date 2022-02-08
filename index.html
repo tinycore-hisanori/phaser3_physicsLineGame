@@ -10,8 +10,10 @@
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/matter-js@0.17.1/build/matter.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/howler@2.2.3/dist/howler.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
+
 
 <body>
     <script>
@@ -28,18 +30,54 @@
         var cntTime = 5 * 60;//5second
         var graphics;
 
-        function gameCheck(){
-            if(gameSatate == 2){
+        var bSound = true;
+        var remainTime = 3 * 60;
+
+        var bgm = new Howl({
+            src: ['bgm.mp3'],
+            loop: true,
+            volume: 0.2,
+        });
+
+        var bgmOver = new Howl({
+            src: ['gameover.mp3']
+        });
+
+        var bgmClear = new Howl({
+            src: ['clear.mp3']
+        });
+
+        var seClick = new Howl({
+            src: ['click.mp3']
+        });
+
+        function gameCheck() {
+            if (gameSatate == 2) {
                 cntTime = cntTime - 1;
-                if(cntTime < 0){                    
+                if (cntTime < 0) {
                     gameSatate = 3;
-                    if(bAlive == true){
+                    bgm.stop();
+                    if (bAlive == true) {
                         //GAME CLEAR   
+                        if (bSound) {
+                            bgmClear.play();
+                        }
                         console.log("CLEAR");
-                        txtEnding.text = "GAME CLEAR!!";                     
+                        txtEnding
+                        .setFontSize(120)
+                        .setColor("#ffd700")
+                        .setFontFamily("CustomFontEng");
+                        txtEnding.text = "GAME CLEAR!";
+
+                        btnReturn.text = "NEXT";
+                        btnReturn
+                        .setFontSize(100)
+                        .setColor("#ff0")
+                        .setBackgroundColor("#aa5500")
                         btnReturn.visible = true;
+
                         currentStageNo = currentStageNo + 1;
-                        if(currentStageNo >= 4){
+                        if (currentStageNo >= 5) {
                             currentStageNo = 1;
                         }
                         console.log("next stage" + currentStageNo);
@@ -47,48 +85,64 @@
                         localforage.setItem("sdsjdas_physicsLineGameStageNo", currentStageNo);
                     } else {
                         //GAME OVER
-                        console.log("OVER");                     
-                        txtEnding.text = "GAME OVER...";                     
+                        if (bSound) {
+                            bgmOver.stop();
+                            bgmOver.play();
+                        }
+                        console.log("OVER");
+                        txtEnding
+                        .setFontSize(80)
+                        .setColor("#dc143c")
+                        .setFontFamily("CustomFontHorror");
+                        txtEnding.text = "GAME OVER...;"
+
+                        btnReturn.text = "RETRY";
+                        btnReturn
+                        .setFontSize(80)
+                        .setColor("#ff0")
+                        .setBackgroundColor("#aa5500")
                         btnReturn.visible = true;
                     }
                 } else {
-                    if(bAlive == false){
+                    if (bAlive == false) {
                         cntTime = 0;
                     }
                 }
             }
         }
 
-        
+
         function initUIParams() {
             stageText = currentScene.add
-                .text(300, 10, "STAGE " + currentStageNo)
+                .text(230, 10, "STAGE " + currentStageNo, { fontFamily: 'CustomFont' })
+                //                .text(300, 10, "ステージ " + currentStageNo, { fontFamily: 'CustomFont' })
                 .setScrollFactor(0)
-                .setFontSize(50)
+                .setFontSize(100)
                 .setColor("#FFFF");
 
+
             txtEnding = currentScene.add
-                .text(200, 100, "")
+                .text(100, 300, "", { fontFamily: 'CustomFont' })
                 .setScrollFactor(0)
-                .setFontSize(46)
+                .setFontSize(120)
                 .setColor("#ff0");
 
             btnReturn = currentScene.add
-                .text(gameWidth / 2 - 100, 400, " BACK ")
+                .text(gameWidth / 2 - 100, 800, " BACK ", { fontFamily: 'CustomFontEng' })
                 .setScrollFactor(0)
-                .setFontSize(46)
+                .setFontSize(100)
                 .setColor("#ff0")
                 .setBackgroundColor("#aa5500")
                 .setInteractive();
             btnReturn.on(
                 "pointerdown",
                 () => {
-                    currentScene.scene.start("titleScene");
+                    currentScene.scene.start("intervalGameScene");
                 },
                 this);
             btnReturn.visible = false;
         }
-        
+
         function initStageLoad() {
             var bg = currentScene.add
                 .tileSprite(0, 0, gameWidth, gameHeight, "bg001")
@@ -103,14 +157,19 @@
                     var map = currentScene.make.tilemap({ key: 'map1' });
                     player = new playerContainer(currentScene, 350, 900);
                     break;
-                    case 2:
+                case 2:
                     var map = currentScene.make.tilemap({ key: 'map2' });
                     player = new playerContainer(currentScene, 350, 900);
                     break;
-                    case 3:
+                case 3:
                     var map = currentScene.make.tilemap({ key: 'map3' });
                     player = new playerContainer(currentScene, 350, 100);
                     break;
+                case 4:
+                    var map = currentScene.make.tilemap({ key: 'map4' });
+                    player = new playerContainer(currentScene, 500, 170);
+                    break;
+
             }
             var tileset = map.addTilesetImage("tilemap", "tiles");
             var layer = map.createLayer(0, tileset, 0, 0);
@@ -219,11 +278,15 @@
                 e.pairs.forEach(function (p) {
                     if (p.bodyA.label == "player" || p.bodyB.label == "player") {
                         if (p.bodyA.label == "player" && p.bodyB.label == "trap") {
-                            p.bodyA.gameObject.doDestroy();
+                            if (player) {
+                                player.doDestroy();
+                            }
                             bAlive = false;
                         }
                         else if (p.bodyA.label == "trap" && p.bodyB.label == "player") {
-                            p.bodyB.gameObject.doDestroy();
+                            if (player) {
+                                player.doDestroy();
+                            }
                             bAlive = false;
                         }
 
@@ -267,22 +330,76 @@
             }
         }
 
-        class titleScene extends Phaser.Scene {
+
+        class preloadScene extends Phaser.Scene {
             constructor() {
-                super({ key: "titleScene", active: true });
+                super({ key: "preloadScene", active: true });
             }
             preload() { }
             create() {
                 currentScene = this;
-                let text = this.add.text(150, 100, "KOUKOKU Game2")
-                    .setFontSize(46)
+                var bgRect = currentScene.add.rectangle(0, 0, gameWidth, gameHeight, "0x123456").setOrigin(0);
+                let text1 = currentScene.add.text(0, 0, "", { fontFamily: 'CustomFontEng' })
+                    .setFontSize(60)
+                    .setColor("#FFFFFF");
+                let text2 = currentScene.add.text(0, 0, "", { fontFamily: 'CustomFontHorror' })
+                    .setFontSize(60)
+                    .setColor("#FFFFFF");
+
+
+                let text = currentScene.add.text(200, gameHeight / 2, "LOADING...", { fontFamily: 'CustomFont' })
+                    .setFontSize(60)
+                    .setColor("#FFFFFF");
+                currentScene.tweens.add({
+                    targets: text,
+                    alpha: 0.5,
+                    ease: 'Cubic.easeOut',
+                    duration: 500,
+                    repeat: -1,
+                    yoyo: true
+                });
+
+                remainTime = 3 * 60;
+            }
+            update() {
+                remainTime = remainTime - 1;
+                if (remainTime < 0) {
+                    this.scene.start("titleScene");
+                }
+
+            }
+        }
+        class titleScene extends Phaser.Scene {
+            constructor() {
+                super({ key: "titleScene", active: false });
+
+            }
+            preload() { }
+            create() {
+                currentScene = this;
+                let text1 = currentScene.add.text(150, 100, "広告ゲームズ Vol.2", { fontFamily: 'CustomFont' })
+                    .setFontSize(80)
                     .setColor("#0");
-                clickButton = this.add.text(100, 400, "START TO CLICK")
+                let text2 = currentScene.add.text(60, 200, "線引いて守る君！", { fontFamily: 'CustomFont' })
+                    .setFontSize(150)
+                    .setColor("#00008b");
+
+                clickButton = this.add.text(100, 500, "START", { fontFamily: 'CustomFontEng' })
                     .setStroke("#0000ff", 4)
                     .setBackgroundColor("#ddbcff")
-                    .setFontSize("60px")
+                    .setFontSize(170)
                     .setColor("#0f0")
                     .setInteractive();
+
+                currentScene.tweens.add({
+                    targets: clickButton,
+                    alpha: 0.5,
+                    ease: 'Cubic.easeOut',
+                    duration: 500,
+                    repeat: -1,
+                    yoyo: true
+                });
+
                 clickButton.on("pointerdown", () => {
                     this.scene.start("gameScene");
                 }, this);
@@ -296,7 +413,7 @@
 
             }
         }
-        
+
 
         class gameScene extends Phaser.Scene {
             constructor() {
@@ -311,6 +428,7 @@
                 this.load.tilemapTiledJSON("map1", "level1.json");
                 this.load.tilemapTiledJSON("map2", "level2.json");
                 this.load.tilemapTiledJSON("map3", "level3.json");
+                this.load.tilemapTiledJSON("map4", "level4.json");
             }
             create() {
 
@@ -320,12 +438,34 @@
                 initUIParams();
                 bGame = true;
                 bAlive = true;
+                if (bSound) {
+                    bgm.play();
+                }
             }
 
-            update() { 
+            update() {
                 gameCheck();
             }
         }
+        class intervalGameScene extends Phaser.Scene {
+            constructor() {
+                super({ key: "intervalGameScene", active: false });
+            }
+            preload() {}
+            create() {
+                currentScene = this;
+                var bgRect = currentScene.add.rectangle(0, 0, gameWidth, gameHeight, "0x123456").setOrigin(0);
+                remainTime = 30;
+            }
+            update() {
+                remainTime = remainTime - 1;
+                if (remainTime < 0) {
+                    this.scene.start("gameScene");
+                }
+
+            }
+        }
+
         var config = {
             type: Phaser.AUTO,
             width: gameWidth,
@@ -346,7 +486,7 @@
                 mode: Phaser.Scale.FIT,
                 autoCenter: Phaser.Scale.CENTER_BOTH
             },
-            scene: [titleScene, gameScene]
+            scene: [preloadScene, titleScene, gameScene, intervalGameScene]
         };
         var game = new Phaser.Game(config);
     </script>
