@@ -11,11 +11,17 @@
     <script src="https://cdn.jsdelivr.net/npm/matter-js@0.17.1/build/matter.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/howler@2.2.3/dist/howler.min.js"></script>
+    <link rel="preload" href="GN-Kin-iro_SansSerif.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="SpicyRice-Regular.otf" as="font" type="font/otf" crossorigin />
+    <link rel="preload" href="CrazyKiller-1jZB.ttf" as="font" type="font/ttf" crossorigin />
     <link rel="stylesheet" href="style.css">
 </head>
 
 
 <body>
+    <div style="font-family: CustomFont;visibility: hidden;">・</div>
+    <div style="font-family: CustomFontEng;visibility: hidden;">・</div>
+    <div style="font-family: CustomFontHorror;visibility: hidden;">・</div>
     <script>
         var gameWidth = 768, gameHeight = 1280;
         var currentStageNo = 1;
@@ -331,47 +337,9 @@
         }
 
 
-        class preloadScene extends Phaser.Scene {
-            constructor() {
-                super({ key: "preloadScene", active: true });
-            }
-            preload() { }
-            create() {
-                currentScene = this;
-                var bgRect = currentScene.add.rectangle(0, 0, gameWidth, gameHeight, "0x123456").setOrigin(0);
-                let text1 = currentScene.add.text(0, 0, "", { fontFamily: 'CustomFontEng' })
-                    .setFontSize(60)
-                    .setColor("#FFFFFF");
-                let text2 = currentScene.add.text(0, 0, "", { fontFamily: 'CustomFontHorror' })
-                    .setFontSize(60)
-                    .setColor("#FFFFFF");
-
-
-                let text = currentScene.add.text(200, gameHeight / 2, "LOADING...", { fontFamily: 'CustomFont' })
-                    .setFontSize(60)
-                    .setColor("#FFFFFF");
-                currentScene.tweens.add({
-                    targets: text,
-                    alpha: 0.5,
-                    ease: 'Cubic.easeOut',
-                    duration: 500,
-                    repeat: -1,
-                    yoyo: true
-                });
-
-                remainTime = 4 * 60;
-            }
-            update() {
-                remainTime = remainTime - 1;
-                if (remainTime < 0) {
-                    this.scene.start("titleScene");
-                }
-
-            }
-        }
         class titleScene extends Phaser.Scene {
             constructor() {
-                super({ key: "titleScene", active: false });
+                super({ key: "titleScene", active: true });
 
             }
             preload() { }
@@ -380,7 +348,7 @@
                 let text1 = currentScene.add.text(150, 100, "広告ゲームズ Vol.2", { fontFamily: 'CustomFont' })
                     .setFontSize(80)
                     .setColor("#0");
-                let text2 = currentScene.add.text(60, 200, "線引いて守る君！", { fontFamily: 'CustomFont' })
+                let text2 = currentScene.add.text(60, 200, "直線で守るくん", { fontFamily: 'CustomFont' })
                     .setFontSize(150)
                     .setColor("#00008b");
 
@@ -486,7 +454,7 @@
                 mode: Phaser.Scale.FIT,
                 autoCenter: Phaser.Scale.CENTER_BOTH
             },
-            scene: [preloadScene, titleScene, gameScene, intervalGameScene]
+            scene: [titleScene, gameScene, intervalGameScene]
         };
         var game = new Phaser.Game(config);
     </script>
